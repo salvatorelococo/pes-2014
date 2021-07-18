@@ -103,8 +103,8 @@ def main(filename: str):
     nationals = pointers.get('nationals')
     clubs = pointers.get('clubs')
 
-    for teams_dict in [nationals, clubs]:
-        with open(filename + '_teams' + '.csv', 'w+', encoding=encoding_type) as f:
+    with open(filename + '_teams' + '.csv', 'w+', encoding=encoding_type) as f:
+        for teams_dict in [nationals, clubs]:
             for k in (key for key in teams_dict if key not in ['start', 'end']):
                 title = teams_dict.get(k).get('title').upper()
 
