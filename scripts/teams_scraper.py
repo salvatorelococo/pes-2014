@@ -16,7 +16,7 @@
 import sys
 from string import ascii_uppercase, digits
 
-from data_info import pointers
+from names_structure import pointers
 
 
 # Encoding settings
