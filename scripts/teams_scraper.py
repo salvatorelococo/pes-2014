@@ -56,8 +56,8 @@ def main(filename: str):
             i.seek(nationalities.get('start') + nationalities_id * nationalities_length)
             info = i.read(nationalities_length)
 
-            name_position = (info[1] - int('18', 16)) * int('100', 16) + info[0]
-            abbr_position = (info[5] - int('18', 16)) * int('100', 16) + info[4]
+            name_position = (info[1] - 0x18) * 0x100 + info[0]
+            abbr_position = (info[5] - 0x18) * 0x100 + info[4]
 
             i.seek(name_position)
             name = b''
@@ -79,10 +79,10 @@ def main(filename: str):
 
                 abbr += c
 
-            hex_string = ' '.join(hex(i)[2:].zfill(2).upper() for i in info)
+            hex_string = ' '.join(hex(i)[2:].upper().zfill(2) for i in info)
 
-            f.write(f'{nationalities_id},{abbr.decode(encoding_type)},{name.decode(encoding_type)},{hex_string}\n')
-            print(f'{nationalities_id:3}. {name.decode(encoding_type)} ({abbr.decode(encoding_type)})')
+            f.write(f'{hex(nationalities_id)[2:].upper()},{abbr.decode(encoding_type)},{name.decode(encoding_type)},{hex_string}\n')
+            print(f'{hex(nationalities_id)[2:].upper():3}. {name.decode(encoding_type)} ({abbr.decode(encoding_type)})')
             print(hex_string)
             print()
 
@@ -147,10 +147,10 @@ def main(filename: str):
 
                         abbr += c
 
-                    hex_string = ' '.join(hex(i)[2:].zfill(2).upper() for i in info)
+                    hex_string = ' '.join(hex(i)[2:].upper().zfill(2) for i in info)
 
-                    f.write(f'{teams_id},{abbr.decode(encoding_type)},{name.decode(encoding_type)},{hex_string},{title}\n')
-                    print(f'{teams_id:3}. {name.decode(encoding_type)} ({abbr.decode(encoding_type)})')
+                    f.write(f'{hex(teams_id)[2:].upper()},{abbr.decode(encoding_type)},{name.decode(encoding_type)},{hex_string},{title}\n')
+                    print(f'{hex(teams_id)[2:].upper():3}. {name.decode(encoding_type)} ({abbr.decode(encoding_type)})')
                     print(hex_string)
                     print()
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
     # Default value
     if len(args) == 0:
-        main('ID00015')
+        main('files/ID00015')
     elif len(args) == 1:
         main(args[0])
     else:

@@ -1,121 +1,121 @@
 names = {
     'nationalities': {
-      'start': int('80', 16),
-      'end': int('D08', 16)
+      'start': 0x80,
+      'end': 0xD08
     },
     'clubs': {
-        'start': int('1180', 16),
-        'end': int('3288', 16)
+        'start': 0x1180,
+        'end': 0x3288
     }
 }
 
 pointers = {
     'nationalities': {
-        'start': int('D08', 16),
-        'end': int('1180', 16)
+        'start': 0xD08,
+        'end': 0X1180
     },
     'nationals': {
         'europe_a': {
             'title': 'Europa A',
-            'start': int('3288', 16),
-            'end': int('33C8', 16)
+            'start': 0x3288,
+            'end': 0x33C8
         },
         'europe_b': {
             'title': 'Europa B',
-            'start': int('33C8', 16),
-            'end': int('3488', 16)
+            'start': 0x33C8,
+            'end': 0x3488
         },
         'africa': {
             'title': 'Africa',
-            'start': int('3488', 16),
-            'end': int('3508', 16)
+            'start': 0x3488,
+            'end': 0x3508
         },
         'americas': {
             'title': 'Americhe',
-            'start': int('3508', 16),
-            'end': int('35C8', 16)
+            'start': 0x3508,
+            'end': 0x35C8
         },
         'asia_oceania': {
             'title': 'Asia / Oceania',
-            'start': int('35C8', 16),
-            'end': int('3648', 16)
+            'start': 0x35C8,
+            'end': 0x3648
         },
         'classics': {
             'title': 'Nazionali classiche',
-            'start': int('3648', 16),
-            'end': int('36B8', 16)
+            'start': 0x3648,
+            'end': 0x36B8
         }
     },
     'clubs': {
         'premier_league': {
             'title': 'Premier League',
-            'start': int('36B8', 16),
-            'end': int('37F8', 16)
+            'start': 0x36B8,
+            'end': 0x37F8
         },
         'ligue_1': {
             'title': 'Ligue 1',
-            'start': int('37F8', 16),
-            'end': int('3938', 16)
+            'start': 0x37F8,
+            'end': 0x3938
         },
         'serie_a': {
             'title': 'Serie A',
-            'start': int('3938', 16),
-            'end': int('3A78', 16)
+            'start': 0x3938,
+            'end': 0x3A78
         },
         'bundesliga': {
             'title': 'Bundesliga',
-            'start': int('3A78', 16),
-            'end': int('3B98', 16)
+            'start': 0x3A78,
+            'end': 0x3B98
         },
         'la_liga': {
             'title': 'La Liga',
-            'start': int('3B98', 16),
-            'end': int('3CD8', 16)
+            'start': 0x3B98,
+            'end': 0x3CD8
         },
         'other_leagues_a': {
             'title': 'Altri campionati A',
-            'start': int('3CD8', 16),
-            'end': int('3E18', 16)
+            'start': 0x3CD8,
+            'end': 0x3E18
         },
         'other_leagues_b': {
             'title': 'Altri campionati B',
-            'start': int('3E18', 16),
-            'end': int('3E98', 16)
+            'start': 0x3E18,
+            'end': 0x3E98
         },
         'other_leagues_c': {
             'title': 'Altri campionati C',
-            'start': int('3E98', 16),
-            'end': int('3ED8', 16)
+            'start': 0x3E98,
+            'end': 0x3ED8
         },
         'unknown_nationals': {
             'title': 'Altre nazionali',
-            'start': int('3ED8', 16),
-            'end': int('4158', 16)
+            'start': 0x3ED8,
+            'end': 0x4158
         },
         'copa_libertadores_1': {
             'title': 'Copa Libertadores I',
-            'start': int('4158', 16),
-            'end': int('4298', 16)
+            'start': 0x4158,
+            'end': 0x4298
         },
         'copa_libertadores_2': {
             'title': 'Copa Libertadores Ii',
-            'start': int('4298', 16),
-            'end': int('43B8', 16)
+            'start': 0x4298,
+            'end': 0x43B8
         },
         'custom_master_league_teams': {
             'title': 'Squadre personalizzate Campionato Master',
-            'start': int('43B8', 16),
-            'end': int('46E8', 16),
+            'start': 0x43B8,
+            'end': 0x46E8
         },
         'champions_league': {
             'title': 'Champions League',
-            'start': int('46E8', 16),
-            'end': int('48E8', 16)
+            'start': 0x46E8,
+            'end': 0x48E8
         },
         'unknown_clubs': {
             'title': 'Altri club',
-            'start': int('48E8', 16),
-            'end': int('4A58', 16)
+            'start': 0x48E8,
+            'end': 0x4A58
         }
     }
 }

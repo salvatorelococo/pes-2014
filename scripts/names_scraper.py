@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
     # Default value
     if len(args) == 0:
-        main('ID00015')
+        main('files/ID00015')
     elif len(args) == 1:
         main(args[0])
     else:
