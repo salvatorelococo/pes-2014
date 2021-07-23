@@ -1,6 +1,7 @@
 import requests_html
+import unicodedata
 
-from scripts.util import hex_to_str, list_to_hex
+from util import list_to_bytes, get_nationality_id, get_players_by_name
 
 DEFAULT_BYTES = \
     b'\xB3\x00\x05\x00\x00\x70\x4E\x28\x50\x42\x47\x3E\xC2\x3F\x4B\x41' \
@@ -10,12 +11,17 @@ DEFAULT_BYTES = \
     b'\x0E\x00\x00\x00\x60\xDB\xB6\x61\x60\xC3\x86\x6D'
 
 CHARSET = 'utf-8'
+PLAYERS_BLOCK_LENGTH = 0x7C
 
 
 def main():
+
     session = requests_html.HTMLSession()
     pes_master_url = 'https://www.pesmaster.com/it/pes-2021/'
-    player = {}
+
+    player_bytes = []
+    new_player_flag = True
+    offset = 0
 
     while True:
         name = input('Digita il nome del giocatore per inserire un nuovo giocatore o EXIT per uscire: ')
@@ -61,106 +67,62 @@ def main():
                     input('Inserisci il valore corrispondente al giocatore che vuoi aggiungere (-1 per annullare): '))
 
                 if -1 <= x < len(figures):
+                    print()
                     break
 
             if x == -1:
                 continue
 
-            print()
             sel_player = players[x]
 
             player_page = session.get(sel_player["url"])
-            positions = player_page.html.find('.player-positions-new', first=True)
-            player_info = player_page.html.find('table.player-info > tbody > tr')
+            player = get_player(player_page)
+            player_flag = True
 
-            player_skills = player_page.html.find('.stats-block table.player-stats-modern > tbody > tr')
+            name = player['Impostazioni di base']['Nome']
+            existing_players = get_players_by_name(name)
 
-            skills_blocks = player_page.html.find('.stats-block')
-            ovr_atk = int(skills_blocks[0].find('h4 > span', first=True).text)
-            ovr_drb = int(skills_blocks[1].find('h4 > span', first=True).text)
-            ovr_def = int(skills_blocks[2].find('h4 > span', first=True).text)
-            ovr_pas = int(skills_blocks[3].find('h4 > span', first=True).text)
-            ovr_phy = int(skills_blocks[4].find('h4 > span', first=True).text)
-            ovr_gk  = int(skills_blocks[5].find('h4 > span', first=True).text)
+            if len(existing_players) > 0:
+                print(f'Sono stati trovati {len(existing_players)} giocatori con nome simile: ')
 
-            player_special_skills = player_page.html.find('.player-index-list > li')
+                for i in range(len(existing_players)):
+                    print(f'{str(i):3} | {str(existing_players[i]["id"]):5} | {existing_players[i]["name"]:30}')
 
-            print('RIEPILOGO GIOCATORE')
-            player = {
-                'Impostazioni di base': {
-                    'Nome': player_page.html.find('.top-header > span:not(:first-child)', first=True).text,
-                    'Età': int([x.find('td')[1].text for x in player_info if x.find('td', first=True).text == 'Età'][0]),
-                    'Piede preferito': [x.find('td')[1].text for x in player_info if
-                                        x.find('td', first=True).text == 'Piede preferito'][0],
-                    'Nazionalità': [x.find('td')[1].text for x in player_info if
-                                    x.find('td', first=True).text == 'Nazionalità'][0],
-                    'Squadra': [x.find('td')[1].text for x in player_info if
-                                x.find('td', first=True).text == 'Squadra'][0],
-                },
-                'Posizione': {
-                    'Principale': positions.find('.main > span', first=True).text,
-                    'Tutte': [x.find('span', first=True).text for x in
-                              positions.find('.fw-1, .fw-2, .mf-2, .mf-1, .df-2, '
-                                             '.df-1, .gk-2, .gk-1')]
-                },
-                'Abilità': {
-                    x.find('td')[1].text: int(x.find('td > span', first=True).text) for x in player_skills
-                },
-                'Abilità speciali': [x.text for x in player_special_skills],
-                'Aspetto': {
-                    'Fisico': {
-                        'Altezza': [x.find('td')[1].text for x in player_info if
-                                    x.find('td', first=True).text == 'Altezza (cm)'][0],
-                        'Peso': [x.find('td')[1].text for x in player_info if
-                                 x.find('td', first=True).text == 'Peso'][0],
-                    }
-                },
-            }
+                print()
 
-            player['Abilità']['Attacco GEN'] = ovr_atk
-            player['Abilità']['Dribbling GEN'] = ovr_drb
-            player['Abilità']['Difesa GEN'] = ovr_def
-            player['Abilità']['Passaggio GEN'] = ovr_pas
-            player['Abilità']['Fisico GEN'] = ovr_phy
-            player['Abilità']['Portiere GEN'] = ovr_gk if ovr_gk != 40 else 50
+                while True:
+                    x = int(
+                        input(
+                            'Inserisci il valore corrispondente al giocatore da aggiornare (-1 per aggiungerlo, '
+                            '-2 per annullare): '))
 
-            # TODO: Should I make it recursive?
-            for key_1 in player:
-                if type(player[key_1]) == dict:
-                    print(f'*** {key_1.upper()} ***')
+                    if -2 <= x < len(existing_players):
+                        break
 
-                    for key_2 in player[key_1]:
-                        if type(player[key_1][key_2]) == dict:
-                            print(f'* {key_2} *')
+                print()
 
-                            for key_3 in player[key_1][key_2]:
-                                print(f'{key_3:30}: {player[key_1][key_2][key_3]}')
-                        elif type(player[key_1][key_2]) == list:
-                            print(f'{key_2:30}: {", ".join(player[key_1][key_2])}')
-                        else:
-                            print(f'{key_2:30}: {player[key_1][key_2]}')
-
-                    print()
-                elif type(player[key_1]) == list:
-                    print(f'{key_1:30}: {", ".join(player[key_1])}\n')
+                if x == -2:
+                    continue
+                elif x == -1:
+                    player_bytes = get_player_bytes(player)
                 else:
-                    print(f'{key_1:30}: {player[key_1]}\n')
+                    new_player_flag = False
+                    offset = PLAYERS_BLOCK_LENGTH * int(existing_players[x]["id"])
+
+                    block = [*existing_players[x]["block"]]
+                    player_bytes = get_player_bytes(player, block)
 
             while True:
                 x = input('Confermi l\'inserimento? (s/n): ').lower()
 
                 if x in ['s', 'n']:
-                    player_flag = True
+                    print()
                     break
 
         if x == 'n':
             continue
 
-        if player_flag:
-            player_bytes = get_player_bytes(player)
-            name = player['Impostazioni di base']['Nome']
-
-        else:
+        if not player_flag:
             shirt = name.upper()
 
             enc_name = b''.join(n.encode(CHARSET) + b'\x00' for n in name)
@@ -171,23 +133,36 @@ def main():
             player_bytes = enc_name + enc_shirt + DEFAULT_BYTES
 
         try:
-            with open('ID00051_000', 'ab') as f:
-                f.write(player_bytes)
+            if new_player_flag:
+                with open('files/ID00051_000', 'ab') as f:
+                    f.write(player_bytes)
 
-            print(name + ' aggiunto!\n')
+                print(name + ' aggiunto!\n')
+            else:
+                with open('files/ID00051_000', 'rb+') as f:
+                    f.seek(offset)
+                    f.write(player_bytes)
+
+                print(name + ' aggiornato!\n')
         except Exception as e:
             print(e.__str__())
 
 
-def get_player_bytes(player: dict):
-    pl_bytes = [0 for _ in range(124)]
+def get_player_bytes(player: dict, pl_bytes: [int] = None):
+    new_player_flag = False
+
+    if pl_bytes is None:
+        new_player_flag = True
+        pl_bytes = [0 for _ in range(124)]
 
     # Nome giocatore (0 - 31)
     counter = 0
 
-    name = player.get('Impostazioni di base').get('Nome')[:16]
+    real_name = player.get('Impostazioni di base').get('Vero nome')[:16]
+    name = real_name or player.get('Impostazioni di base').get('Nome')[:16]
+
     for c in name:
-        enc_c = c.encode(CHARSET)
+        enc_c = c.encode('utf-16')[2:]
 
         enc_counter = 0
         for enc_byte in enc_c:
@@ -212,20 +187,23 @@ def get_player_bytes(player: dict):
         counter += 1
 
     # Nome annunciato (48 - 49) | default = ---
-    pl_bytes[48] += 255
-    pl_bytes[49] += 255
+    if not new_player_flag:
+        pl_bytes[48] = 255
+        pl_bytes[49] = 255
 
     # Stile calcio di rigore (52) | default = 1
     # Stile calcio di punizione (52) | default = 1
     # Piede preferito (52)
+    pl_bytes[52] -= pl_bytes[52] % 2
     if player['Impostazioni di base']['Piede preferito'] == 'Sinistra':
         pl_bytes[52] += 1
 
-    # Posizione predefinita (53)
     # Tipo di rinvio (53) | default = 1
     # Stile dribbling (53) | default = 1
+    # Posizione predefinita (53)
+    pl_bytes[53] -= (pl_bytes[53] - pl_bytes[53] % (2 ** 4))
     positions_dict = {
-        'POR': 0,
+        'PT': 0,
         'DC': 3,
         'TS': 4,
         'TD': 4,
@@ -241,28 +219,39 @@ def get_player_bytes(player: dict):
     }
     pl_bytes[53] += positions_dict[player['Posizione']['Principale']] * (2 ** 4)
 
-    # Abilità (54 - 81)
-    # Posizioni (54 - 65)
-    # Fascia preferita (81) | Default: Fascia piede preferito
     # Abilità speciali (66 - 79, 82, 84) | Default: Nessuna
+    # Posizioni (54 - 65)
+
+    for i in range(54, 66):
+        pl_bytes[i] -= pl_bytes[i] - pl_bytes[i] % (2 ** 7)
 
     positions_dict = {
-        'POR': 54,
+        'PT': 54,
         'LIB': 55,
         'DC': 56,
         'TER': 57,
+        'TS': 57,
+        'TD': 57,
         'MED': 58,
         'EB': 59,
         'CC': 60,
         'CL': 61,
+        'CLS': 61,
+        'CLD': 61,
         'TRQ': 62,
         'EA': 63,
+        'ESA': 63,
+        'EDA': 63,
         'SP': 64,
         'P': 65
     }
 
     for p in player['Posizione']['Tutte']:
-        pl_bytes[positions_dict[p]] += 2**7
+        pl_bytes[positions_dict[p]] = 2**7
+
+    # Abilità (54 - 79)
+    for i in range(54, 80):
+        pl_bytes[i] -= pl_bytes[i] % (2 ** 7)
 
     abilities_dict = {
         'Accelerazione': [(59, 1), (60, 0.5), (61, 0.33)],
@@ -296,8 +285,10 @@ def get_player_bytes(player: dict):
         for mod in abilities_dict[k]:
             offset = mod[0]
             weight = mod[1]
+
             pl_bytes[offset] += val * weight
 
+    # Mentalità (78)
     mentality_dict = {
         'Comportamento difensivo': [0.3, 0.8, 0.4, 0.1],
         'Comportamento offensivo': [0.1, 0.1, 0.4, 0.8],
@@ -306,22 +297,24 @@ def get_player_bytes(player: dict):
     }
 
     positions_dict = {
-        0: ['POR'],
+        0: ['PT'],
         1: ['TS', 'DC', 'TD'],
         2: ['CLS', 'MED', 'CC', 'TRQ', 'CLD'],
         3: ['ESA', 'SP', 'P', 'EDA']
     }
 
+    pl_bytes[78] -= pl_bytes[78] % (2 ** 7)
     for k in positions_dict:
         if player['Posizione']['Principale'] in positions_dict[k]:
             for ability in mentality_dict:
                 val = player['Abilità'][ability]
                 pl_bytes[78] += val * mentality_dict[ability][k]
 
+    # Abilità (80-81)
     abilities_dict_2 = {
-        'Frequenza piede debole': [(80, 2, 2 ** 3)],
-        'Precisione piede debole': [(81, 2, 2 ** 3)],
-        'Forma fisica': [(81, 1, 1)]
+        'Frequenza piede debole': [(80, 2, 2 ** 6, 2 ** 3)],
+        'Precisione piede debole': [(81, 2, 2 ** 6, 2 ** 3)],
+        'Forma fisica': [(81, 1, 2 ** 3, 2 ** 0)]
     }
 
     for k in abilities_dict_2:
@@ -330,26 +323,153 @@ def get_player_bytes(player: dict):
         for mod in abilities_dict_2[k]:
             offset = mod[0]
             multiplier = mod[1]
-            weight = mod[2]
+            max_bit_weight = mod[2]
+            weight = mod[3]
 
+            pl_bytes[offset] -= (pl_bytes[offset] % max_bit_weight) - (pl_bytes[offset] % weight)
             pl_bytes[offset] += (val * multiplier - 1) * weight
 
     # Resistenza infortuni (80)
+    pl_bytes[80] -= pl_bytes[80] - pl_bytes[80] % (2 ** 6)
     pl_bytes[80] += (player['Abilità']['Resistenza infortuni'] - 1) * (2 ** 6)
 
-    # TODO: Nazionalità (112)
+    # Fascia preferita (81) | Default: Fascia piede preferito
+
+    # Esultanza 1 (83) | Default: 0
+    # Esultanza 2 (84) | Default: 0
+
+    # Miglioramento giocatore (85) | Default: Lento / Costante
+
+    # Altezza (88)
+    pl_bytes[88] -= pl_bytes[88] % (2 ** 7)
+    pl_bytes[88] += player['Aspetto']['Fisico']['Altezza'] - 148
+
+    # Peso (89)
+    pl_bytes[89] -= pl_bytes[89] % (2 ** 7)
+    pl_bytes[89] += player['Aspetto']['Fisico']['Peso']
+
+    # Nazionalità (112)
+    pl_bytes[112] = get_nationality_id(player['Impostazioni di base']['Nazionalità'])
 
     # Età (113)
     age = player['Impostazioni di base']['Età']
-    pl_bytes[113] += ((age if age <= 40 else 40) - 15) * 2
+    pl_bytes[113] -= pl_bytes[113] % (2 ** 6) - pl_bytes[113] % 2
+    pl_bytes[113] += (age - 15) * 2
 
-    # FINE
+    # Impostazioni aspetto fisico | Default
+    if new_player_flag:
+        pl_bytes[90] = 0x70
+        pl_bytes[91] = 0x77
+        pl_bytes[92] = 0xD4
+        pl_bytes[93] = 0x06
+        pl_bytes[99] = 0x40
+        pl_bytes[100] = 0x10
+        pl_bytes[105] = 0x77
+        pl_bytes[106] = 0x77
+        pl_bytes[107] = 0x77
+        pl_bytes[108] = 0x77
+        pl_bytes[109] = 0x07
+        pl_bytes[116] = 0x60
+        pl_bytes[117] = 0xDB
+        pl_bytes[118] = 0xB6
+        pl_bytes[119] = 0x61
+        pl_bytes[120] = 0x60
+        pl_bytes[121] = 0xC3
+        pl_bytes[122] = 0x86
+        pl_bytes[123] = 0x6D
 
     pl_bytes = [int(x) for x in pl_bytes]
-    return list_to_hex(pl_bytes)
+    return list_to_bytes(pl_bytes)
+
+
+def get_player(player_page):
+    positions = player_page.html.find('.player-positions-new', first=True)
+    player_info = player_page.html.find('table.player-info > tbody > tr')
+
+    player_skills = player_page.html.find('.stats-block table.player-stats-modern > tbody > tr')
+    player_special_skills = player_page.html.find('.player-index-list > li')
+
+    real_name = [x.find('td')[1].text for x in player_info if x.find('td', first=True).text == 'Vero Nome']
+    real_name = real_name[0] if real_name else ''
+
+    print('RIEPILOGO GIOCATORE')
+    player = {
+        'Impostazioni di base': {
+            'Nome': player_page.html.find('.top-header > span:not(:first-child)', first=True).text,
+            'Vero nome': real_name,
+            'Età': int([x.find('td')[1].text for x in player_info if x.find('td', first=True).text == 'Età'][0]),
+            'Piede preferito': [x.find('td')[1].text for x in player_info if
+                                x.find('td', first=True).text == 'Piede preferito'][0],
+            'Nazionalità': [x.find('td')[1].text for x in player_info if
+                            x.find('td', first=True).text == 'Nazionalità'][0],
+            'Squadra': [x.find('td')[1].text for x in player_info if
+                        x.find('td', first=True).text == 'Squadra'][0],
+        },
+        'Posizione': {
+            'Principale': positions.find('.main > span', first=True).text,
+            'Tutte': [x.find('span', first=True).text for x in
+                      positions.find('.fw-1, .fw-2, .mf-2, .mf-1, .df-2, '
+                                     '.df-1, .gk-2, .gk-1')]
+        },
+        'Abilità': {
+            x.find('td')[1].text: int(x.find('td > span', first=True).text) for x in player_skills
+        },
+        'Abilità speciali': [x.text for x in player_special_skills],
+        'Aspetto': {
+            'Fisico': {
+                'Altezza': int([x.find('td')[1].text for x in player_info if
+                                x.find('td', first=True).text == 'Altezza (cm)'][0]),
+                'Peso': int([x.find('td')[1].text for x in player_info if
+                             x.find('td', first=True).text == 'Peso'][0])
+            }
+        }
+    }
+
+    skills_blocks = player_page.html.find('.stats-block')
+
+    ovr_atk = int(skills_blocks[0].find('h4 > span', first=True).text)
+    ovr_drb = int(skills_blocks[1].find('h4 > span', first=True).text)
+    ovr_def = int(skills_blocks[2].find('h4 > span', first=True).text)
+    ovr_pas = int(skills_blocks[3].find('h4 > span', first=True).text)
+    ovr_phy = int(skills_blocks[4].find('h4 > span', first=True).text)
+    ovr_gk = int(skills_blocks[5].find('h4 > span', first=True).text)
+
+    player['Abilità']['Attacco GEN'] = ovr_atk
+    player['Abilità']['Dribbling GEN'] = ovr_drb
+    player['Abilità']['Difesa GEN'] = ovr_def
+    player['Abilità']['Passaggio GEN'] = ovr_pas
+    player['Abilità']['Fisico GEN'] = ovr_phy
+    player['Abilità']['Portiere GEN'] = ovr_gk if ovr_gk != 40 else 50
+
+    print_player_stats(player)
+    return player
+
+
+def print_player_stats(player: dict):
+    for key_1 in player:
+        if type(player[key_1]) == dict:
+            print(f'*** {key_1.upper()} ***')
+
+            for key_2 in player[key_1]:
+                if type(player[key_1][key_2]) == dict:
+                    print(f'* {key_2} *')
+
+                    for key_3 in player[key_1][key_2]:
+                        print(f'{key_3:30}: {player[key_1][key_2][key_3]}')
+                elif type(player[key_1][key_2]) == list:
+                    print(f'{key_2:30}: {", ".join(player[key_1][key_2])}')
+                else:
+                    print(f'{key_2:30}: {player[key_1][key_2]}')
+
+            print()
+        elif type(player[key_1]) == list:
+            print(f'{key_1:30}: {", ".join(player[key_1])}\n')
+        else:
+            print(f'{key_1:30}: {player[key_1]}\n')
 
 
 def get_shirt_name(s: str):
+    s = "".join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
     s = s.upper()
 
     if s[1:3] == '. ':
