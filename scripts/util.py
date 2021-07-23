@@ -2,7 +2,7 @@ from typing import BinaryIO
 
 from scripts.names_structure import pointers
 
-charset = 'utf-8'
+CHARSET = 'utf-8'
 
 
 def get_cl_clubs(stream: BinaryIO):
@@ -117,8 +117,8 @@ def get_data(stream: BinaryIO, offset, _length):
 
     return {
         'hex_seq': hex_to_str(info),
-        'abbr': abbr.decode(charset),
-        'name': name.decode(charset)
+        'abbr': abbr.decode(CHARSET),
+        'name': name.decode(CHARSET)
     }
 
 
@@ -146,3 +146,12 @@ def read_until_null(stream: BinaryIO):
         s += c
 
     return s
+
+
+def list_to_hex(int_list: list):
+    hex_str = b''
+
+    for val in int_list:
+        hex_str += chr(val).encode('iso-8859-1')
+
+    return hex_str
