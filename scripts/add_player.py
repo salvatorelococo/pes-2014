@@ -14,140 +14,6 @@ CHARSET = 'utf-8'
 PLAYERS_BLOCK_LENGTH = 0x7C
 
 
-def main():
-
-    session = requests_html.HTMLSession()
-    pes_master_url = 'https://www.pesmaster.com/it/pes-2021/'
-
-    player_bytes = []
-    new_player_flag = True
-    offset = 0
-
-    while True:
-        name = input('Digita il nome del giocatore per inserire un nuovo giocatore o EXIT per uscire: ')
-        print()
-
-        if name.lower() == 'exit':
-            break
-
-        search_page = session.get(pes_master_url, params={'q': name})
-        player_container = search_page.html.find('.player-card-container', first=True)
-        player_flag = False
-
-        if not player_container:
-            while True:
-                x = input('Giocatore non trovato! Aggiungere comunque con impostazioni default? (s/n): ').lower()
-
-                if x in ['s', 'n']:
-                    break
-
-        else:
-            figures = player_container.find('.player-card')
-            players = {}
-            counter = 0
-
-            print(f'Sono stati trovati {len(figures)} risultati:')
-            for f in figures:
-                player = {
-                    'name': f.find('.player-card-name', first=True).text,
-                    'ovr': f.find('.player-card-ovr', first=True).text,
-                    'pos': f.find('.player-card-position', first=True).text,
-                    'url': [*f.absolute_links][0]
-                }
-
-                players[counter] = player
-                print(
-                    f'{str(counter):3} | {player["name"]:20} | {player["ovr"]:2} | {player["pos"]:3} | {player["url"]}')
-                counter += 1
-
-            print()
-
-            while True:
-                x = int(
-                    input('Inserisci il valore corrispondente al giocatore che vuoi aggiungere (-1 per annullare): '))
-
-                if -1 <= x < len(figures):
-                    print()
-                    break
-
-            if x == -1:
-                continue
-
-            sel_player = players[x]
-
-            player_page = session.get(sel_player["url"])
-            player = get_player(player_page)
-            player_flag = True
-
-            name = player['Impostazioni di base']['Nome']
-            existing_players = get_players_by_name(name)
-
-            if len(existing_players) > 0:
-                print(f'Sono stati trovati {len(existing_players)} giocatori con nome simile: ')
-
-                for i in range(len(existing_players)):
-                    print(f'{str(i):3} | {str(existing_players[i]["id"]):5} | {existing_players[i]["name"]:30}')
-
-                print()
-
-                while True:
-                    x = int(
-                        input(
-                            'Inserisci il valore corrispondente al giocatore da aggiornare (-1 per aggiungerlo, '
-                            '-2 per annullare): '))
-
-                    if -2 <= x < len(existing_players):
-                        break
-
-                print()
-
-                if x == -2:
-                    continue
-                elif x == -1:
-                    player_bytes = get_player_bytes(player)
-                else:
-                    new_player_flag = False
-                    offset = PLAYERS_BLOCK_LENGTH * int(existing_players[x]["id"])
-
-                    block = [*existing_players[x]["block"]]
-                    player_bytes = get_player_bytes(player, block)
-
-            while True:
-                x = input('Confermi l\'inserimento? (s/n): ').lower()
-
-                if x in ['s', 'n']:
-                    print()
-                    break
-
-        if x == 'n':
-            continue
-
-        if not player_flag:
-            shirt = name.upper()
-
-            enc_name = b''.join(n.encode(CHARSET) + b'\x00' for n in name)
-            enc_name = enc_name + b'\x00' * (32 - len(enc_name))
-
-            enc_shirt = shirt.encode(CHARSET)[:15]
-            enc_shirt = enc_shirt + b'\x00' * (16 - len(enc_shirt))
-            player_bytes = enc_name + enc_shirt + DEFAULT_BYTES
-
-        try:
-            if new_player_flag:
-                with open('files/ID00051_000', 'ab') as f:
-                    f.write(player_bytes)
-
-                print(name + ' aggiunto!\n')
-            else:
-                with open('files/ID00051_000', 'rb+') as f:
-                    f.seek(offset)
-                    f.write(player_bytes)
-
-                print(name + ' aggiornato!\n')
-        except Exception as e:
-            print(e.__str__())
-
-
 def get_player_bytes(player: dict, pl_bytes: [int] = None):
     new_player_flag = False
 
@@ -286,6 +152,7 @@ def get_player_bytes(player: dict, pl_bytes: [int] = None):
         'Veronica': [(68, 2 ** 7)],
     }
 
+    ability_not_found_flag = False
     for ab in player['Abilità speciali']:
         try:
             for mod in specials_dict[ab]:
@@ -295,7 +162,11 @@ def get_player_bytes(player: dict, pl_bytes: [int] = None):
                 pl_bytes[offset] -= pl_bytes[offset] % (bit_value * 2) - pl_bytes[offset] % bit_value
                 pl_bytes[offset] += bit_value
         except KeyError:
-            print(f'{ab} non trovata.')
+            print(f'Abilità {ab} non trovata.')
+            ability_not_found_flag = True
+
+    if ability_not_found_flag:
+        print()
 
     # Posizioni (54 - 65)
     for i in range(54, 66):
@@ -552,6 +423,151 @@ def get_shirt_name(s: str):
         s = s[3:]
 
     return s
+
+
+def main():
+
+    session = requests_html.HTMLSession()
+    pes_master_url = 'https://www.pesmaster.com/it/pes-2021/'
+
+    player_bytes = b''
+    new_player_flag = True
+    offset = 0
+
+    while True:
+        name = input('Digita il nome del giocatore per inserire un nuovo giocatore o EXIT per uscire: ')
+        print()
+
+        if name.lower() == 'exit':
+            break
+
+        search_page = session.get(pes_master_url, params={'q': name})
+        player_container = search_page.html.find('.player-card-container', first=True)
+        player_flag = False
+
+        if not player_container:
+            while True:
+                x = input('Giocatore non trovato! Aggiungere comunque con impostazioni default? (s/n): ').lower()
+
+                if x in ['s', 'n']:
+                    print()
+                    break
+
+        else:
+            figures = player_container.find('.player-card')
+            players = {}
+            counter = 0
+
+            print(f'Sono stati trovati {len(figures)} risultati:')
+            for f in figures:
+                player = {
+                    'name': f.find('.player-card-name', first=True).text,
+                    'ovr': f.find('.player-card-ovr', first=True).text,
+                    'pos': f.find('.player-card-position', first=True).text,
+                    'url': [*f.absolute_links][0]
+                }
+
+                players[counter] = player
+                print(
+                    f'{str(counter):3} | {player["name"]:20} | {player["ovr"]:2} | {player["pos"]:3} | {player["url"]}')
+                counter += 1
+
+            print()
+
+            while True:
+                try:
+                    x = int(
+                        input('Inserisci il valore corrispondente al giocatore che vuoi aggiungere (-1 per annullare): '))
+
+                    if -1 <= x < len(figures):
+                        print()
+                        break
+
+                except ValueError:
+                    pass
+
+            if x == -1:
+                continue
+
+            sel_player = players[x]
+
+            player_page = session.get(sel_player["url"])
+            player = get_player(player_page)
+            player_flag = True
+
+            name = player['Impostazioni di base']['Nome']
+            existing_players = get_players_by_name(name)
+
+            if len(existing_players) > 0:
+                print(f'Sono stati trovati {len(existing_players)} giocatori con nome simile: ')
+
+                for i in range(len(existing_players)):
+                    print(f'{str(i):3} | {str(existing_players[i]["id"]):5} | {existing_players[i]["name"]:30}')
+
+                print()
+
+                while True:
+                    try:
+                        x = int(
+                            input(
+                                'Inserisci il valore corrispondente al giocatore da aggiornare (-1 per aggiungerlo, '
+                                '-2 per annullare): '))
+
+                        if -2 <= x < len(existing_players):
+                            break
+                    except ValueError:
+                        pass
+
+                print()
+
+                if x == -2:
+                    continue
+                elif x == -1:
+                    player_bytes = get_player_bytes(player)
+                else:
+                    new_player_flag = False
+                    offset = PLAYERS_BLOCK_LENGTH * int(existing_players[x]["id"])
+
+                    block = [*existing_players[x]["block"]]
+                    player_bytes = get_player_bytes(player, block)
+            else:
+                player_bytes = get_player_bytes(player)
+                print('Nessun giocatore già presente con nome simile trovato. Il giocatore verrà aggiunto.\n')
+
+            while True:
+                x = input('Confermi l\'inserimento? (s/n): ').lower()
+
+                if x in ['s', 'n']:
+                    print()
+                    break
+
+        if x == 'n':
+            continue
+
+        if not player_flag:
+            shirt = name.upper()
+
+            enc_name = b''.join(n.encode(CHARSET) + b'\x00' for n in name)
+            enc_name = enc_name + b'\x00' * (32 - len(enc_name))
+
+            enc_shirt = shirt.encode(CHARSET)[:15]
+            enc_shirt = enc_shirt + b'\x00' * (16 - len(enc_shirt))
+            player_bytes = enc_name + enc_shirt + DEFAULT_BYTES
+
+        try:
+            if new_player_flag:
+                with open('files/ID00051_000', 'ab') as f:
+                    f.write(player_bytes)
+
+                print(name + ' aggiunto!\n')
+            else:
+                with open('files/ID00051_000', 'rb+') as f:
+                    f.seek(offset)
+                    f.write(player_bytes)
+
+                print(name + ' aggiornato!\n')
+        except Exception as e:
+            print(e.__str__())
 
 
 if __name__ == '__main__':
