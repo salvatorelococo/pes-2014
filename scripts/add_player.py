@@ -220,8 +220,84 @@ def get_player_bytes(player: dict, pl_bytes: [int] = None):
     pl_bytes[53] += positions_dict[player['Posizione']['Principale']] * (2 ** 4)
 
     # Abilità speciali (66 - 79, 82, 84) | Default: Nessuna
-    # Posizioni (54 - 65)
+    for i in range(66, 80):
+        pl_bytes[i] -= pl_bytes[i] - pl_bytes[i] % (2 ** 7)
 
+    pl_bytes[82] = 0
+    pl_bytes[84] -= pl_bytes[84] - pl_bytes[84] % (2 ** 7)
+
+    specials_dict = {
+        'Ala prolifica': [(79, 2 ** 7)],
+        'Astuzia': [(70, 2 ** 7)],
+        'Classico #10': [(72, 2 ** 7)],
+        'Collante': [(76, 2 ** 7)],
+        'Colpo di tacco': [(82, 2 ** 0)],
+        'Colpo di testa': [(82, 2 ** 2)],
+        'Cross calibrato': [(79, 2 ** 7)],
+        'Disimpegno acrobatico': [(82, 2 ** 5)],
+        'Doppio tocco': [(73, 2 ** 7)],
+        'Elastico': [(68, 2 ** 7)],
+        'Esterno a giro': [(82, 2 ** 1)],
+        'Finalizz. acrobatica': [(74, 2 ** 7)],
+        'Finta doppio passo': [(68, 2 ** 7)],
+        'Finta portoghese': [(68, 2 ** 7)],
+        'Fulcro di gioco': [(72, 2 ** 7)],
+        'Funambolo': [(68, 2 ** 7)],
+        'Giocatore chiave': [(82, 2 ** 2)],
+        'Incontrista': [(71, 2 ** 7)],
+        'Intercettazione': [(82, 2 ** 5)],
+        'Lancio lungo': [(79, 2 ** 7)],
+        'Marcatore': [(82, 2 ** 2)],
+        'No-look': [(72, 2 ** 7)],
+        'Onnipresente': [(70, 2 ** 7)],
+        'Opportunista': [(69, 2 ** 7), (74, 2 ** 7)],
+        'Pallonetto mirato': [(75, 2 ** 7)],
+        'Para-rigori': [(82, 2 ** 6)],
+        'Passaggio a scavalcare': [(73, 2 ** 7)],
+        'Passaggio calibrato': [(73, 2 ** 7)],
+        'Passaggio di prima': [(82, 2 ** 0)],
+        'Passaggio filtrante': [(72, 2 ** 7)],
+        'Portiere difensivo': [(82, 2 ** 7)],
+        'Portiere offensivo': [(82, 2 ** 8)],
+        'Rapace dell\'area': [(75, 2 ** 7)],
+        'Regista creativo': [(72, 2 ** 7)],
+        'Rimbalzo interno': [(75, 2 ** 7)],
+        'Rimessa lunga PT': [(84, 2 ** 7)],
+        'Rimessa profonda PT': [(84, 2 ** 7)],
+        'Senza palla': [(70, 2 ** 7)],
+        'Serpentina': [(68, 2 ** 7)],
+        'Sombrero': [(68, 2 ** 7)],
+        'Specialista dei cross': [(79, 2 ** 7)],
+        'Specialista dei rigori': [(66, 2 ** 7)],
+        'Spirito combattivo': [(82, 2 ** 3)],
+        'Sviluppo': [(77, 2 ** 7)],
+        'Taglio al centro': [(67, 2 ** 7)],
+        'Taglio alle spalle e giro': [(69, 2 ** 7)],
+        'Tiratore': [(78, 2 ** 7)],
+        'Tiri a salire': [(78, 2 ** 7)],
+        'Tiri a scendere': [(78, 2 ** 7)],
+        'Tiro da lontano': [(78, 2 ** 7)],
+        'Tiro di prima': [(74, 2 ** 7)],
+        'Tiro di collo': [(82, 2 ** 1)],
+        'Tornante': [(82, 2 ** 4)],
+        'Tra le linee': [(72, 2 ** 7)],
+        'Traiettoria bassa': [(84, 2 ** 7)],
+        'Uso della suola': [(68, 2 ** 7)],
+        'Veronica': [(68, 2 ** 7)],
+    }
+
+    for ab in player['Abilità speciali']:
+        try:
+            for mod in specials_dict[ab]:
+                offset = mod[0]
+                bit_value = mod[1]
+
+                pl_bytes[offset] -= pl_bytes[offset] % (bit_value * 2) - pl_bytes[offset] % bit_value
+                pl_bytes[offset] += bit_value
+        except KeyError:
+            print(f'{ab} non trovata.')
+
+    # Posizioni (54 - 65)
     for i in range(54, 66):
         pl_bytes[i] -= pl_bytes[i] - pl_bytes[i] % (2 ** 7)
 
