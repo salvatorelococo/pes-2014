@@ -1,6 +1,6 @@
 import os
 
-encoding_type = 'utf-8'
+CHARSET = 'utf-8'
 
 
 def main(keyword: str):
@@ -11,7 +11,7 @@ def main(keyword: str):
             continue
 
         with open(file, 'rb') as f:
-            if keyword.encode(encoding_type) in f.read():
+            if keyword.encode(CHARSET) in f.read():
                 print(file)
 
 

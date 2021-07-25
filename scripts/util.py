@@ -1,7 +1,6 @@
-import csv
 from typing import BinaryIO
 
-from names_structure import pointers
+from files_structure.ID00015_structure import pointers
 
 CHARSET = 'utf-8'
 
@@ -21,6 +20,9 @@ def get_cl_clubs(stream: BinaryIO):
 
         _id = seq[4]
         clubs[_id] = {
+            'abbr': '',
+            'name': '',
+            'group': '',
             'hex_seq': hex_to_str(seq)
         }
 
@@ -57,22 +59,27 @@ def get_nationals(stream: BinaryIO):
     _id = 0
     _length = 16
 
-    # TODO: Improve structure
     n = pointers.get('nationals')
-    start_offset = n.get('europe_a').get('start')
-    end_offset = n.get('classics').get('end')
 
-    stream.seek(start_offset)
+    for k in n:
+        _id_k = 0
+        group = n[k].get('title')
+        start_offset = n[k].get('start')
+        end_offset = n[k].get('end')
 
-    while True:
-        offset = start_offset + _id * _length
+        stream.seek(start_offset)
 
-        if offset >= end_offset:
-            break
+        while True:
+            offset = start_offset + _id_k * _length
 
-        nationals[_id] = get_data(stream, offset, _length)
+            if offset >= end_offset:
+                break
 
-        _id += 1
+            nationals[_id] = get_data(stream, offset, _length)
+            nationals[_id]['group'] = group
+
+            _id += 1
+            _id_k += 1
 
     return nationals
 
@@ -80,25 +87,30 @@ def get_nationals(stream: BinaryIO):
 def get_clubs(stream: BinaryIO):
     clubs = {}
 
-    _id = 0
+    _id = 67
     _length = 16
 
-    # TODO: Improve structure
     c = pointers.get('clubs')
-    start_offset = c.get('premier_league').get('start')
-    end_offset = c.get('unknown_clubs').get('end')
 
-    stream.seek(start_offset)
+    for k in c:
+        _id_k = 0
+        group = c[k].get('title')
+        start_offset = c[k].get('start')
+        end_offset = c[k].get('end')
 
-    while True:
-        offset = start_offset + _id * _length
+        stream.seek(start_offset)
 
-        if offset >= end_offset:
-            break
+        while True:
+            offset = start_offset + _id_k * _length
 
-        clubs[_id + 67] = get_data(stream, offset, _length)
+            if offset >= end_offset:
+                break
 
-        _id += 1
+            clubs[_id] = get_data(stream, offset, _length)
+            clubs[_id]['group'] = group
+
+            _id_k += 1
+            _id += 1
 
     return clubs
 
@@ -117,9 +129,10 @@ def get_data(stream: BinaryIO, offset, _length):
     abbr = read_until_null(stream)
 
     return {
-        'hex_seq': hex_to_str(info),
         'abbr': abbr.decode(CHARSET),
-        'name': name.decode(CHARSET)
+        'name': name.decode(CHARSET),
+        'group': '',
+        'hex_seq': hex_to_str(info),
     }
 
 
@@ -147,6 +160,24 @@ def read_until_null(stream: BinaryIO):
         s += c
 
     return s
+
+
+def hex_string_to_list(s: str):
+    res = []
+    s = s.replace(' ', '')
+
+    counter = 0
+    while True:
+        tmp = s[counter * 2:(counter + 1) * 2]
+
+        if len(tmp) == 0:
+            break
+
+        if len(tmp) == 1:
+            raise Exception('Invalid hex sequence')
+
+        res.append(int(tmp, 16))
+        counter += 1
 
 
 def list_to_bytes(int_list: list):
@@ -194,34 +225,32 @@ def get_nationality_id(s: str):
                 pass
 
 
-def get_players():
+def get_players(stream: BinaryIO):
     block_length = 0x7C
     charset = 'utf-16'
 
     players = {}
+    _id = 1
 
-    with open('files/ID00051_000', 'rb') as ID00015:
-        _id = 1
+    while True:
+        stream.seek(block_length * _id)
 
-        while True:
-            ID00015.seek(block_length * _id)
+        block = stream.read(block_length)
+        if block == b'':
+            break
 
-            block = ID00015.read(block_length)
-            if block == b'':
-                break
+        name = block[:32]
+        name = name.replace(b'\x00\x00', b'')
 
-            name = block[:32]
-            name = name.replace(b'\x00\x00', b'')
-
-            players[_id] = {'name': name.decode(charset), 'block': block}
-            _id += 1
+        players[_id] = {'name': name.decode(charset), 'block': hex_to_str(block)}
+        _id += 1
 
     return players
 
 
-def get_players_by_name(s: str):
+def get_players_by_name(s: str, stream: BinaryIO):
     s = s.upper()
-    players = get_players()
+    players = get_players(stream)
 
     res = []
 

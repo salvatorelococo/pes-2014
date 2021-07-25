@@ -16,16 +16,16 @@
 import sys
 from string import ascii_uppercase, digits
 
-from names_structure import pointers
+from files_structure.ID00015_structure import pointers
 
 
 # Encoding settings
-encoding_type = 'utf-8'
+CHARSET = 'utf-8'
 
 # Filter for common bytes only
 valid_bytes = [
-    *(x.encode(encoding_type) for x in ascii_uppercase),
-    *(x.encode(encoding_type) for x in digits),
+    *(x.encode(CHARSET) for x in ascii_uppercase),
+    *(x.encode(CHARSET) for x in digits),
     b' ',
     b'.',
     b'-',
@@ -36,8 +36,8 @@ valid_bytes = [
 special_byte = b'\xc3'
 
 
-def main(filename: str):
-    i = open(filename, 'rb')
+def main():
+    i = open('../files/ID00015', 'rb')
 
     # Search for nationalities
     print('*' * 32)
@@ -51,7 +51,7 @@ def main(filename: str):
     nationalities = pointers.get(k)
     total_nationalities = (nationalities.get('end') - nationalities.get('start')) / nationalities_length
 
-    with open(filename + '_' + k + '.csv', 'w+', encoding=encoding_type) as f:
+    with open('../csv/ID00015' + '_' + k + '.csv', 'w+', encoding=CHARSET) as f:
         while nationalities_id < total_nationalities:
             i.seek(nationalities.get('start') + nationalities_id * nationalities_length)
             info = i.read(nationalities_length)
@@ -81,8 +81,8 @@ def main(filename: str):
 
             hex_string = ' '.join(hex(i)[2:].upper().zfill(2) for i in info)
 
-            f.write(f'{hex(nationalities_id)[2:].upper()},{abbr.decode(encoding_type)},{name.decode(encoding_type)},{hex_string}\n')
-            print(f'{hex(nationalities_id)[2:].upper():3}. {name.decode(encoding_type)} ({abbr.decode(encoding_type)})')
+            f.write(f'{hex(nationalities_id)[2:].upper()},{abbr.decode(CHARSET)},{name.decode(CHARSET)},{hex_string}\n')
+            print(f'{hex(nationalities_id)[2:].upper():3}. {name.decode(CHARSET)} ({abbr.decode(CHARSET)})')
             print(hex_string)
             print()
 
@@ -103,7 +103,7 @@ def main(filename: str):
     nationals = pointers.get('nationals')
     clubs = pointers.get('clubs')
 
-    with open(filename + '_teams' + '.csv', 'w+', encoding=encoding_type) as f:
+    with open('../csv/ID00015' + '_teams' + '.csv', 'w+', encoding=CHARSET) as f:
         for teams_dict in [nationals, clubs]:
             for k in (key for key in teams_dict if key not in ['start', 'end']):
                 title = teams_dict.get(k).get('title').upper()
@@ -149,8 +149,8 @@ def main(filename: str):
 
                     hex_string = ' '.join(hex(i)[2:].upper().zfill(2) for i in info)
 
-                    f.write(f'{hex(teams_id)[2:].upper()},{abbr.decode(encoding_type)},{name.decode(encoding_type)},{hex_string},{title}\n')
-                    print(f'{hex(teams_id)[2:].upper():3}. {name.decode(encoding_type)} ({abbr.decode(encoding_type)})')
+                    f.write(f'{hex(teams_id)[2:].upper()},{abbr.decode(CHARSET)},{name.decode(CHARSET)},{title},{hex_string}\n')
+                    print(f'{hex(teams_id)[2:].upper():3}. {name.decode(CHARSET)} ({abbr.decode(CHARSET)})')
                     print(hex_string)
                     print()
 
@@ -163,18 +163,8 @@ def main(filename: str):
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
-
-    # Default value
-    if len(args) == 0:
-        main('files/ID00015')
-    elif len(args) == 1:
-        main(args[0])
-    else:
-        print('\n'.join([
-            'Invalid arguments',
-            '',
-            'Usage:',
-            f'\t- {sys.argv[0]} "ID Filename"'
-        ]))
-        exit(1)
+    try:
+        main()
+    except Exception as e:
+        print(e.__str__())
+        input('Premi INVIO per terminare')

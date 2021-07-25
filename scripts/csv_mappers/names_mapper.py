@@ -23,12 +23,12 @@ starting_byte = int('1180', 16)
 ending_byte = int('3240', 16)
 
 # Encoding settings
-encoding_type = 'utf-8'
+CHARSET = 'utf-8'
 
 # Filter for common bytes only
 valid_bytes = [
-    *(x.encode(encoding_type) for x in ascii_uppercase),
-    *(x.encode(encoding_type) for x in digits),
+    *(x.encode(CHARSET) for x in ascii_uppercase),
+    *(x.encode(CHARSET) for x in digits),
     b' ',
     b'.',
     b'-',
@@ -39,10 +39,10 @@ valid_bytes = [
 special_byte = b'\xc3'
 
 
-def main(filename: str):
+def main():
     # Opening files
-    s = open(filename, 'rb')
-    o = open(filename + '.csv', 'w+', encoding=encoding_type)
+    s = open('../files/ID00015', 'rb')
+    o = open('../csv/ID00015.csv', 'w+', encoding=CHARSET)
 
     # Skipping not relevant data
     s.seek(starting_byte)
@@ -68,7 +68,7 @@ def main(filename: str):
 
                     # Handling of error while reading the couple of bytes starting with the "special"
                     try:
-                        team_name.decode(encoding_type)
+                        team_name.decode(CHARSET)
                     except:
                         team_name = team_name[:-2]
                         current_pos -= 1
@@ -125,15 +125,15 @@ def main(filename: str):
                 starting_flag = False
 
             print(
-                team_short.decode(encoding_type) + ',' +
-                team_name.decode(encoding_type) + ',' +
+                team_short.decode(CHARSET) + ',' +
+                team_name.decode(CHARSET) + ',' +
                 str(team_short_pos) + ',' +
                 str(team_name_pos) + ',', end=''
             )
 
             o.write(
-                team_short.decode(encoding_type) + ',' +
-                team_name.decode(encoding_type) + ',' +
+                team_short.decode(CHARSET) + ',' +
+                team_name.decode(CHARSET) + ',' +
                 str(team_short_pos) + ',' +
                 str(team_name_pos) + ','
             )
@@ -151,22 +151,11 @@ def main(filename: str):
         s.close()
         o.close()
         print('\n')
-        input('FINE. Premi INVIO per terminare.')
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
-
-    # Default value
-    if len(args) == 0:
-        main('files/ID00015')
-    elif len(args) == 1:
-        main(args[0])
-    else:
-        print('\n'.join([
-            'Invalid arguments',
-            '',
-            'Usage:',
-            f'\t- {sys.argv[0]} "ID Filename"'
-        ]))
-        exit(1)
+    try:
+        main()
+    except Exception as e:
+        print(e.__str__())
+        input('Premi INVIO per terminare')

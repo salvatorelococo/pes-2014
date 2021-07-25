@@ -1,7 +1,7 @@
 import requests_html
 import unicodedata
 
-from util import list_to_bytes, get_nationality_id, get_players_by_name
+from util import list_to_bytes, get_nationality_id, get_players_by_name, hex_string_to_list
 
 DEFAULT_BYTES = \
     b'\xB3\x00\x05\x00\x00\x70\x4E\x28\x50\x42\x47\x3E\xC2\x3F\x4B\x41' \
@@ -496,7 +496,8 @@ def main():
             player_flag = True
 
             name = player['Impostazioni di base']['Nome']
-            existing_players = get_players_by_name(name)
+            with open('/files/ID00051_000', 'rb') as f:
+                existing_players = get_players_by_name(name, f)
 
             if len(existing_players) > 0:
                 print(f'Sono stati trovati {len(existing_players)} giocatori con nome simile: ')
@@ -528,7 +529,7 @@ def main():
                     new_player_flag = False
                     offset = PLAYERS_BLOCK_LENGTH * int(existing_players[x]["id"])
 
-                    block = [*existing_players[x]["block"]]
+                    block = [*(hex_string_to_list(existing_players[x]["block"]))]
                     player_bytes = get_player_bytes(player, block)
             else:
                 player_bytes = get_player_bytes(player)
@@ -571,4 +572,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(e.__str__())
+        input('Premi INVIO per terminare')

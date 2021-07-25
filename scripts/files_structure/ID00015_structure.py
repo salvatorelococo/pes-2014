@@ -98,7 +98,7 @@ pointers = {
             'end': 0x4298
         },
         'copa_libertadores_2': {
-            'title': 'Copa Libertadores Ii',
+            'title': 'Copa Libertadores II',
             'start': 0x4298,
             'end': 0x43B8
         },

@@ -1,6 +1,7 @@
 import os
 
-encoding_type = 'utf-8'
+CHARSET = 'utf-8'
+
 
 def main(keyword: str):
     files = os.listdir()
