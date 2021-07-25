@@ -6,8 +6,8 @@
 #                 - Team ID
 #                 - Team Name Abbreviation (es: ACM)
 #                 - Team Name (es: AC MILAN)
-#                 - Team related byte sequence
 #                 - Team League (es: 'SERIE A')
+#                 - Team related byte sequence
 #
 # date          : 2021-07-16
 # version       : 1.2
@@ -81,8 +81,8 @@ def main():
 
             hex_string = ' '.join(hex(i)[2:].upper().zfill(2) for i in info)
 
-            f.write(f'{hex(nationalities_id)[2:].upper()},{abbr.decode(CHARSET)},{name.decode(CHARSET)},{hex_string}\n')
-            print(f'{hex(nationalities_id)[2:].upper():3}. {name.decode(CHARSET)} ({abbr.decode(CHARSET)})')
+            f.write(f'{nationalities_id},{abbr.decode(CHARSET)},{name.decode(CHARSET)},{hex_string}\n')
+            print(f'{str(nationalities_id):3}. {name.decode(CHARSET)} ({abbr.decode(CHARSET)})')
             print(hex_string)
             print()
 
@@ -149,8 +149,8 @@ def main():
 
                     hex_string = ' '.join(hex(i)[2:].upper().zfill(2) for i in info)
 
-                    f.write(f'{hex(teams_id)[2:].upper()},{abbr.decode(CHARSET)},{name.decode(CHARSET)},{title},{hex_string}\n')
-                    print(f'{hex(teams_id)[2:].upper():3}. {name.decode(CHARSET)} ({abbr.decode(CHARSET)})')
+                    f.write(f'{teams_id},{abbr.decode(CHARSET)},{name.decode(CHARSET)},{title},{hex_string}\n')
+                    print(f'{str(teams_id):3}. {name.decode(CHARSET)} ({abbr.decode(CHARSET)})')
                     print(hex_string)
                     print()
 
