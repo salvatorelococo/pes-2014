@@ -1,13 +1,14 @@
 from typing import BinaryIO
 
 from files_structure.ID00015_structure import pointers
+from files_structure.EBOOT_OLD_structure import pointers as eboot_pointers
 
 CHARSET = 'utf-8'
 
 
 def get_cl_clubs(stream: BinaryIO):
     clubs = {}
-    offset = 0x2C3358
+    offset = eboot_pointers['Champions League']['start']
 
     stream.seek(offset)
 
@@ -179,6 +180,8 @@ def hex_string_to_list(s: str):
         res.append(int(tmp, 16))
         counter += 1
 
+    return res
+
 
 def list_to_bytes(int_list: list):
     hex_str = b''
@@ -255,7 +258,21 @@ def get_players_by_name(s: str, stream: BinaryIO):
     res = []
 
     for k in players.keys():
-        if players[k]['name'].upper() in s:
+        if players[k]['name'].upper() in s or s in players[k]['name'].upper():
             res.append({'id': k, 'name': players[k]['name'], 'block': players[k]['block']})
+
+    return res
+
+
+def get_clubs_by_name(s: str, stream: BinaryIO):
+    s = s.upper()
+    clubs = get_clubs(stream)
+
+    res = []
+
+    for k in clubs.keys():
+        club_name = clubs[k]['name'].upper()
+        if (club_name in s and len(club_name) > 3) or s in club_name:
+            res.append({'id': k, 'name': clubs[k]['name'], 'group': clubs[k]['group'], 'hex_seq': clubs[k]['hex_seq']})
 
     return res
