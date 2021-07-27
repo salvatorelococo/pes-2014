@@ -12,9 +12,11 @@ def main():
             print('Squadre attuali: ')
             counter = 0
             cl_clubs_arr = []
-            for _id in cl_clubs.keys():
+
+            for cl_club in cl_clubs:
+                _id = cl_club['id']
                 tmp = clubs[_id]
-                tmp["id"] = _id
+                tmp['id'] = _id
                 cl_clubs_arr.append(tmp)
 
                 print(f'{counter:3} | {str(_id):3} {clubs[_id]["name"]}')

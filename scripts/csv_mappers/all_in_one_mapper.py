@@ -44,18 +44,18 @@ def main():
     with open('../files/EBOOT.OLD', 'rb') as EBOOT:
         cl_teams = get_cl_clubs(EBOOT)
 
-        for key_1 in cl_teams:
-            club = clubs.get(key_1)
+        for cl_team in cl_teams:
+            club = clubs.get(cl_team['id'])
 
             for key_2 in club:
-                cl_teams.get(key_1)[key_2] = cl_teams.get(key_1).get(key_2) or club.get(key_2)
+                cl_team[key_2] = cl_team.get(key_2) or club.get(key_2)
 
         with open('../csv/champions_league.csv', 'w+', encoding=charset) as f:
             f.write(
                 '\n'.join(
                     ','.join(
-                        [str(k), *cl_teams[k].values()]
-                    ) for k in cl_teams.keys()
+                        [str(x) for x in cl_team.values()]
+                    ) for cl_team in cl_teams
                 )
             )
 

@@ -6,8 +6,8 @@ from files_structure.EBOOT_OLD_structure import pointers as eboot_pointers
 CHARSET = 'utf-8'
 
 
-def get_cl_clubs(stream: BinaryIO):
-    clubs = {}
+def get_cl_clubs(stream: BinaryIO) -> list:
+    clubs = []
     offset = eboot_pointers['Champions League']['start']
 
     stream.seek(offset)
@@ -20,17 +20,18 @@ def get_cl_clubs(stream: BinaryIO):
             break
 
         _id = seq[4]
-        clubs[_id] = {
+        clubs.append({
+            'id': _id,
             'abbr': '',
             'name': '',
             'group': '',
             'hex_seq': hex_to_str(seq)
-        }
+        })
 
     return clubs
 
 
-def get_nationalities(stream: BinaryIO):
+def get_nationalities(stream: BinaryIO) -> dict:
     nationalities = {}
 
     _id = 0
@@ -54,7 +55,7 @@ def get_nationalities(stream: BinaryIO):
     return nationalities
 
 
-def get_nationals(stream: BinaryIO):
+def get_nationals(stream: BinaryIO) -> dict:
     nationals = {}
 
     _id = 0
@@ -85,7 +86,7 @@ def get_nationals(stream: BinaryIO):
     return nationals
 
 
-def get_clubs(stream: BinaryIO):
+def get_clubs(stream: BinaryIO) -> dict:
     clubs = {}
 
     _id = 67
@@ -116,7 +117,7 @@ def get_clubs(stream: BinaryIO):
     return clubs
 
 
-def get_data(stream: BinaryIO, offset, _length):
+def get_data(stream: BinaryIO, offset, _length) -> dict:
     stream.seek(offset)
     info = stream.read(_length)
 
@@ -141,7 +142,7 @@ def hex_to_str(stream: bytes) -> str:
     return ' '.join(hex(b)[2:].upper().zfill(2) for b in stream)
 
 
-def normalize_id(_id: int):
+def normalize_id(_id: int) -> str:
     _id = hex(_id)[2:].upper()
 
     if not len(_id) % 2:
@@ -150,7 +151,7 @@ def normalize_id(_id: int):
         return '0' + _id
 
 
-def read_until_null(stream: BinaryIO):
+def read_until_null(stream: BinaryIO) -> bytes:
     s = b''
     while True:
         c = stream.read(1)
@@ -163,7 +164,7 @@ def read_until_null(stream: BinaryIO):
     return s
 
 
-def hex_string_to_list(s: str):
+def hex_string_to_list(s: str) -> list:
     res = []
     s = s.replace(' ', '')
 
@@ -183,7 +184,7 @@ def hex_string_to_list(s: str):
     return res
 
 
-def list_to_bytes(int_list: list):
+def list_to_bytes(int_list: list) -> bytes:
     hex_str = b''
 
     try:
@@ -264,7 +265,7 @@ def get_players_by_name(s: str, stream: BinaryIO):
     return res
 
 
-def get_clubs_by_name(s: str, stream: BinaryIO):
+def get_clubs_by_name(s: str, stream: BinaryIO) -> list:
     s = s.upper()
     clubs = get_clubs(stream)
 
