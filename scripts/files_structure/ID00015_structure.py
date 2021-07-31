@@ -1,7 +1,7 @@
 names = {
     'nationalities': {
-      'start': 0x80,
-      'end': 0xD08
+        'start': 0x80,
+        'end': 0xD08
     },
     'clubs': {
         'start': 0x1180,

@@ -1,32 +1,22 @@
-#
-# author        : SLC
-# description   : Script created for editing PES 2014 team names databases, stored in OVER.cpk, by using a csv file.
-#
-#                 CSV file must have following values (separated by comma) in this order:
-#                 - Team Name Abbreviation (es: ACM)
-#                 - Team Name (es: AC MILAN)
-#                 - Abbreviation pointer (position of the first byte for the abbreviation)
-#                 - Team Name pointer (position of the first byte for the team name)
-#                 - End pointer (position that should not be overcome)
-#
-#                 You can get a source csv by using another script of mine: team_names_scraper.py.
-# date          : 2021-07-14
-# version       : 1.1
-#
-
 import csv
+from os import path
+
+from config import FILES_DIR, CSV_DIR
+
+FILES_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', FILES_DIR, '')
+CSV_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', CSV_DIR, '')
 
 CHARSET = 'utf-8'
 
 
 def main():
     # Import of data from csv
-    with open('../csv/ID00015.csv', encoding=CHARSET) as csv_file:
+    with open(CSV_DIRECTORY + 'ID00015.csv', encoding=CHARSET) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         data = [*csv_reader]
 
     # Update of id file
-    with open('../files/ID00015/', 'rb+') as f:
+    with open(FILES_DIRECTORY + 'ID00015/', 'rb+') as f:
         print('Modifica in corso...\n')
         for row in data:
             abbr = row[0]

@@ -1,29 +1,26 @@
-from util import get_clubs, get_cl_clubs
+from os import path
+
+from classes.Team import Club
+from config import FILES_DIR, CSV_DIR
+from util import get_cl_clubs
+
+FILES_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', FILES_DIR, '')
+CSV_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', CSV_DIR, '')
 
 CHARSET = 'utf-8'
 
 
 def main():
-    with open('../files/ID00015', 'rb') as f:
-        clubs = get_clubs(f)
-
-    with open('../files/EBOOT.OLD', 'rb') as f:
+    with open(FILES_DIRECTORY + 'EBOOT.OLD', 'rb') as f:
         cl_teams = get_cl_clubs(f)
 
     for cl_team in cl_teams:
-        club = clubs.get(cl_team['id'])
+        club = Club.from_id(cl_team['id'])
+        cl_team['abbr'] = club.abbr
+        cl_team['name'] = club.name
 
-        for key_2 in club:
-            cl_team[key_2] = cl_team.get(key_2) or club.get(key_2)
-
-    with open('../csv/champions_league.csv', 'w+', encoding=CHARSET) as f:
-        f.write(
-            '\n'.join(
-                ','.join(
-                    [str(x) for x in cl_team.values()]
-                ) for cl_team in cl_teams
-            )
-        )
+    with open(CSV_DIRECTORY + 'champions_league.csv', 'w+', encoding=CHARSET) as f:
+        f.write('\n'.join(','.join([str(x) for x in cl_team.values()]) for cl_team in cl_teams))
 
 
 if __name__ == '__main__':

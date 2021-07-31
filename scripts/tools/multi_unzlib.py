@@ -1,6 +1,6 @@
-import zlib
 import os
 import time
+import zlib
 
 MAX_OFFSET = 512
 

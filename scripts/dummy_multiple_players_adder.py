@@ -1,22 +1,22 @@
-DEFAULT_BYTES = \
-    b'\x53\x00\x4C\x00\x43\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' \
-    b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' \
-    b'\x53\x20\x20\x4C\x20\x20\x43\x00\x00\x00\x00\x00\x00\x00\x00\x00' \
-    b'\xB3\x00\x05\x00\x00\x70\x4E\x28\x50\x42\x47\x3E\xC2\x3F\x4B\x41' \
-    b'\x44\x3E\x43\x3B\x44\x42\x49\x41\x39\x4C\x40\x43\x4B\x41\x44\x32' \
-    b'\x98\x1D\x00\x00\x00\x37\x8E\x10\x20\x50\x70\x77\x01\x00\x00\x00' \
-    b'\x3E\x00\x00\x00\x17\x00\x34\x13\x21\x77\x77\x77\x77\x17\x00\x00' \
-    b'\x0E\x00\x00\x00\x60\xDB\xB6\x61\x60\xC3\x86\x6D'
+from os import path
+
+from classes.Player import Player
+from config import FILES_DIR, CSV_DIR
+
+FILES_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), FILES_DIR, '')
+CSV_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), CSV_DIR, '')
 
 CHARSET = 'utf-8'
 
 
 def main():
     qty = int(input('Inserisci il numero di giocatori da aggiungere: '))
+    player = Player()
+    block = player.get_block()
 
     try:
-        with open('ID00051_000', 'ab') as f:
-            f.write(DEFAULT_BYTES * qty)
+        with open(FILES_DIRECTORY + 'ID00051_000', 'ab') as f:
+            f.write(block * qty)
     except Exception as e:
         print(e.__str__())
 

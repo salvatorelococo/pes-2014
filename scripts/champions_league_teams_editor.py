@@ -1,10 +1,16 @@
-from util import get_cl_clubs, get_clubs, get_clubs_by_name, list_to_bytes, hex_string_to_list
-from files_structure.ID00015_structure import pointers as id00015_pointers
+from os import path
+
+from config import FILES_DIR, CSV_DIR
 from files_structure.EBOOT_OLD_structure import pointers as eboot_old_pointers
+from files_structure.ID00015_structure import pointers as id00015_pointers
+from util import get_cl_clubs, get_clubs, get_clubs_by_name, list_to_bytes, hex_string_to_list
+
+FILES_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), FILES_DIR, '')
+CSV_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), CSV_DIR, '')
 
 
 def main():
-    with open('files/ID00015', 'rb+') as ID00015, open('files/EBOOT.OLD', 'rb+') as EBOOT_OLD:
+    with open(FILES_DIRECTORY + 'ID00015', 'rb+') as ID00015, open(FILES_DIRECTORY + 'EBOOT.OLD', 'rb+') as EBOOT_OLD:
         cl_clubs = get_cl_clubs(EBOOT_OLD)
         clubs = get_clubs(ID00015)
 

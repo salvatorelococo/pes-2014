@@ -1,16 +1,22 @@
-from util import get_players
+from os import path
+
+from classes.Player import Player
+from config import FILES_DIR, CSV_DIR
+from util import hex_to_str
+
+FILES_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', FILES_DIR, '')
+CSV_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', CSV_DIR, '')
 
 BLOCK_LENGTH = 0x7C
 CHARSET = 'utf-16'
 
 
 def main():
-    with open('../files/ID00051_000', 'rb') as f:
-        players = get_players(f)
+    players = Player.get_all()
 
-    with open('../csv/players.csv', 'w+', encoding=CHARSET) as o:
-        for _id in players.keys():
-            o.write(f'{_id},{players[_id].get("name")},{players[_id].get("block")}\n')
+    with open(CSV_DIRECTORY + 'players.csv', 'w+', encoding=CHARSET) as o:
+        for p in players:
+            o.write(f'{p.id},{p.name},{hex_to_str(p.get_block())}\n')
 
 
 if __name__ == '__main__':

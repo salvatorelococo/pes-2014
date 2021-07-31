@@ -1,7 +1,7 @@
 from typing import BinaryIO
 
-from files_structure.ID00015_structure import pointers
 from files_structure.EBOOT_OLD_structure import pointers as eboot_pointers
+from files_structure.ID00015_structure import pointers
 
 CHARSET = 'utf-8'
 
@@ -24,7 +24,6 @@ def get_cl_clubs(stream: BinaryIO) -> list:
             'id': _id,
             'abbr': '',
             'name': '',
-            'group': '',
             'hex_seq': hex_to_str(seq)
         })
 
@@ -252,6 +251,20 @@ def get_players(stream: BinaryIO):
     return players
 
 
+def get_players_by_team_id(stream: BinaryIO, _id: int, block_length: int) -> list:
+    stream.seek(block_length * _id)
+    players = [{'id': int(x) + 1} for x in stream.read(block_length)]
+
+    return players
+
+
+def get_player_by_id(stream: BinaryIO, _id: int) -> dict:
+    stream.seek(124 * _id)
+    player = {'hex': stream.read(124)}
+
+    return player
+
+
 def get_players_by_name(s: str, stream: BinaryIO):
     s = s.upper()
     players = get_players(stream)
@@ -277,3 +290,10 @@ def get_clubs_by_name(s: str, stream: BinaryIO) -> list:
             res.append({'id': k, 'name': clubs[k]['name'], 'group': clubs[k]['group'], 'hex_seq': clubs[k]['hex_seq']})
 
     return res
+
+
+def get_bits(v: int, start_byte_pos: int, end_byte_pos: int = None):
+    if end_byte_pos is None:
+        end_byte_pos = start_byte_pos
+
+    return (v % (2 ** (end_byte_pos + 1)) - v % (2 ** start_byte_pos)) // (2 ** start_byte_pos)

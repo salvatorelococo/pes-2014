@@ -1,28 +1,13 @@
-#
-# author        : SLC
-# description   : Script created for extracting a csv file from PES 2014 team names databases, stored in OVER.cpk.
-#
-#                 CSV file will have following values (separated by comma):
-#                 - Team Name Abbreviation (es: ACM)
-#                 - Team Name (es: AC MILAN)
-#                 - Abbreviation pointer (position of the first byte for the abbreviation)
-#                 - Team Name pointer (position of the first byte for the team name)
-#                 - End pointer (position that should not be overcome)
-#
-#                 You can use this as source for another script of mine: team_names_updater.py.
-# date          : 2021-07-16
-# version       : 1.1
-#
-
-import sys
+from os import path
 from string import ascii_uppercase, digits
 
-# ! ATTENTION !
-# Settings - These info should be set according to the file you want to working on
-starting_byte = int('1180', 16)
-ending_byte = int('3240', 16)
+from config import FILES_DIR, CSV_DIR
 
-# Encoding settings
+FILES_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', FILES_DIR, '')
+CSV_DIRECTORY = path.join(path.dirname(path.abspath(__file__)), '..', CSV_DIR, '')
+
+START_POS = int('1180', 16)
+END_POS = int('3240', 16)
 CHARSET = 'utf-8'
 
 # Filter for common bytes only
@@ -41,18 +26,18 @@ special_byte = b'\xc3'
 
 def main():
     # Opening files
-    s = open('../files/ID00015', 'rb')
-    o = open('../csv/ID00015.csv', 'w+', encoding=CHARSET)
+    s = open(FILES_DIRECTORY + 'ID00015', 'rb')
+    o = open(CSV_DIRECTORY + 'ID00015.csv', 'w+', encoding=CHARSET)
 
     # Skipping not relevant data
-    s.seek(starting_byte)
-    current_pos = starting_byte
+    s.seek(START_POS)
+    current_pos = START_POS
 
     # Starting reading
     try:
         starting_flag = True
 
-        while current_pos < ending_byte:
+        while current_pos < END_POS:
             team_name = b''
             team_short = b''
             team_name_pos = None
@@ -115,7 +100,7 @@ def main():
                 current_pos += 1
                 team_short += tmp
 
-            if current_pos > ending_byte:
+            if current_pos > END_POS:
                 break
 
             if not starting_flag:
@@ -138,8 +123,8 @@ def main():
                 str(team_name_pos) + ','
             )
 
-        print(ending_byte),
-        o.write(str(ending_byte))
+        print(END_POS),
+        o.write(str(END_POS))
 
     except Exception as e:
         print()
