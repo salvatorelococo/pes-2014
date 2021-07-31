@@ -5,6 +5,7 @@ Here you will find the **code**.
 filename | Description
 ---------|-------------
 dummy_multiple_players_adder.py | Insert `n` players with the same dafault values.
+last_players.remover.py | Remove last `n` players from ID00051_000.
 players_adder.py | Insert (or substitute) players (one by one) by taking advantage from pesmaster.
 util.py | Contains useful functions used in more scripts.
 
