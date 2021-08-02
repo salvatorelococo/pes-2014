@@ -17,9 +17,12 @@ class Nationality:
     abbr: str
     bytes_sequence: bytes
 
+    def __str__(self):
+        return self.name
+
     @classmethod
     def from_id(cls, _id: int):
-        n = Nationality()
+        n = cls()
         n.id = _id
 
         with open(FILES_DIRECTORY + 'ID00015', 'rb') as ID00015:
@@ -45,7 +48,14 @@ class Nationality:
 
     @classmethod
     def from_name(cls, name: str) -> list:
-        return [x for x in Nationality.get_all() if name.upper() in x.name.upper()]
+        res = []
+        for n in Nationality.get_all():
+            if name.upper() in n.name.upper():
+                if name.upper() == n.name.upper():
+                    return [n]
+                res.append(n)
+
+        return res
 
     @classmethod
     def from_abbr(cls, abbr: str):

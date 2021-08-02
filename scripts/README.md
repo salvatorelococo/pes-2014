@@ -16,4 +16,4 @@ csv_mappers | Contains scripts that generate CSV files.
 csv_updaters | Contains scripts that update game files using generated (and edited) CSV files.
 files | Contains file on which scripts work on.
 files_structure | Contains info about memory zones to read.
-tools | Contains scripts that perform specific actions, useful for research / debugging and files managin.
+tools | Contains scripts that perform specific actions, useful for research / debugging and files managing.
